@@ -2,9 +2,17 @@ package controllers
 
 import (
   "github.com/gofiber/fiber/v2"
+  "go-admin/models"
 )
 
-func Hello(c *fiber.Ctx) error {
-  return c.SendString("Hello world this is /")
+func Register(c *fiber.Ctx) error {
+
+  user := models.User{
+    FirstName: "first_name",
+    LastName: "last_name",
+    Email: "email",
+  }
+
+  return c.JSON(user)
 }
 
