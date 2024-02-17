@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
+	"gorm.io/driver/mysql"
 )
 
 
@@ -36,6 +38,13 @@ func main() {
 	// We can notice that if we change the value but the address doesn't change
 	*name = "Raj"
 	fmt.Printf("address: %v, value: %v\n", name, *name)
+
+  dsn := "root:rootpass@/go_admin"
+  db, err := gorm.Open(mysql.Open(dsn))
+  if err != nil {
+    panic("Couln not connect to the Database, Terminating")
+  }
+  fmt.Println(db)
 
 
   app := fiber.New()
