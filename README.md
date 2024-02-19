@@ -17,3 +17,9 @@ DESCRIBE <table_name>;
 exit;   OR \q
 go get gorm.io/gorm
 go get gorm.io/driver/mysql
+
+
+
+12:
+install another package JWT (json web token)
+go get github.com/dgrijalva/jwt-go

@@ -3,6 +3,8 @@ package controllers
 import (
   "github.com/gofiber/fiber/v2"
   "golang.org/x/crypto/bcrypt"
+  "github.com/dgrijalva/jwt-go"
+  "time"
   "go-admin/models"
   "go-admin/database"
   "fmt"
@@ -68,5 +70,17 @@ func Login(c *fiber.Ctx) error {
     })
   }
 
-  return c.JSON(user)
+  userIdStr := fmt.Sprintf("%v", user.Id)
+  // now we got the user, so we want to store some info for this user, so have to create some claims
+  claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+    Issuer: userIdStr,
+    ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // this will expires in 1 day
+  })
+
+  token, err := claims.SignedString([]byte("secret"))
+  if err != nil {
+    c.SendStatus(fiber.StatusInternalServerError)
+  }
+
+  return c.JSON(token)
 }
