@@ -7,6 +7,7 @@ import (
   "time"
   "go-admin/models"
   "go-admin/database"
+  "go-admin/util"
   "fmt"
 )
 
@@ -72,12 +73,13 @@ func Login(c *fiber.Ctx) error {
 
   userIdStr := fmt.Sprintf("%v", user.Id)
   // now we got the user, so we want to store some info for this user, so have to create some claims
-  claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-    Issuer: userIdStr,
-    ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // this will expires in 1 day
-  })
-
-  token, err := claims.SignedString([]byte("secret"))
+//  claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+//    Issuer: userIdStr,
+//    ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // this will expires in 1 day
+//  })
+//
+//  token, err := claims.SignedString([]byte("secret"))
+  token, err := util.GenerateJwt(userIdStr)
   if err != nil {
     c.SendStatus(fiber.StatusInternalServerError)
   }
@@ -103,24 +105,30 @@ type Claims struct {
 
 func User(c *fiber.Ctx) error {
   cookie := c.Cookies("jwt")
+// Replaced
+//  token, err := jwt.ParseWithClaims(cookie, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+//    return []byte("secret"), nil
+//  })
+//
+//  if err != nil || !token.Valid {
+//    c.Status(fiber.StatusUnauthorized)
+//    return c.JSON(fiber.Map{
+//      "Message": "Unauthenticated",
+//    })
+//  }
+//
+//  //claims := token.Claims
+//  claims := token.Claims.(*Claims)
+//
+//  var user models.User
+//  database.DB.Where("id = ?", claims.Issuer).First(&user)
+// ========================================================
+    id, _ := util.ParseJwt(cookie)
+    // check for err is not needed because it will be taken care by middleware
 
-  token, err := jwt.ParseWithClaims(cookie, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-    return []byte("secret"), nil
-  })
-
-  if err != nil || !token.Valid {
-    c.Status(fiber.StatusUnauthorized)
-    return c.JSON(fiber.Map{
-      "Message": "Unauthenticated",
-    })
-  }
-
-  //claims := token.Claims
-  claims := token.Claims.(*Claims)
-
-  var user models.User
-  database.DB.Where("id = ?", claims.Issuer).First(&user)
-
+    var user models.User
+    database.DB.Where("id = ?", id).First(&user)
+// -------------------------------------------------------
   //return c.JSON(claims.Issuer)
   return c.JSON(user)
 }
