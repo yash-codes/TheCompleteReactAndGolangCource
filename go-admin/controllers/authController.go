@@ -124,3 +124,22 @@ func User(c *fiber.Ctx) error {
   //return c.JSON(claims.Issuer)
   return c.JSON(user)
 }
+
+
+func Logout(c *fiber.Ctx) error {
+
+  // we need to remove the stored cookie
+  // that we can achieve by replace the stored cookie with blank entity and set the expireTime as past
+  cookie := fiber.Cookie{
+    Name: "jwt",
+    Value: "",
+    Expires: time.Now().Add(-time.Hour),
+    HTTPOnly: true,
+  } 
+
+  c.Cookie(&cookie)
+  return c.JSON(fiber.Map{
+    "Message": "user logged out successfully",
+  })
+
+}
