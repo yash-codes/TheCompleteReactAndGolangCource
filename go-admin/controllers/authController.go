@@ -2,7 +2,7 @@ package controllers
 
 import (
   "github.com/gofiber/fiber/v2"
-  "golang.org/x/crypto/bcrypt"
+  //"golang.org/x/crypto/bcrypt"
   "github.com/dgrijalva/jwt-go"
   "time"
   "go-admin/models"
@@ -31,14 +31,15 @@ func Register(c *fiber.Ctx) error {
   }
 
   // password will be changed to hash & send as hash in response
-  password, _ := bcrypt.GenerateFromPassword([]byte(data["password"]), 14)
+  //password, _ := bcrypt.GenerateFromPassword([]byte(data["password"]), 14)
 
   user := models.User{
     FirstName: data["first_name"],
     LastName: data["last_name"],
     Email: data["email"],
-    Password: password,
+    //Password: password,
   }
+  user.SetPassword(data["password"])
 
   // store user details in db
   database.StoreData(&user)
@@ -64,7 +65,7 @@ func Login(c *fiber.Ctx) error {
 	    "Error Message": "User not found",
     })
   }
-  if err := bcrypt.CompareHashAndPassword(user.Password, []byte(data["password"])); err != nil {
+  if err := user.ComparePassword(data["password"]); err != nil {
     c.Status(400)
     return c.JSON(fiber.Map{
       "Error Message": "Incorrect Password",
