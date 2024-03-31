@@ -18,8 +18,8 @@ func Connect() {
   fmt.Println(db)
   DB = db
 
-  db.Migrator().DropTable(&models.User{})
-  db.AutoMigrate(&models.User{}) //this will create the table automatically
+  db.Migrator().DropTable(&models.User{}, &models.Role{})
+  db.AutoMigrate(&models.User{}, &models.Role{}) //this will create the table automatically
 
 }
 
