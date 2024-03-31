@@ -4,16 +4,31 @@ import (
   "go-admin/models"
   "github.com/gofiber/fiber/v2"
   "go-admin/database"
+  "math"
   "strconv"
   //"golang.org/x/crypto/bcrypt"
 )
 
 func AllUsers(c *fiber.Ctx) error {
+
+  page, _ := strconv.Atoi(c.Query("page","1"))
+  limit := 5
+  offset := (page - 1) * limit
+  var total int64
+
   var users []models.User
 
-  database.DB.Preload("Role").Find(&users)
-
-  return c.JSON(users)
+  database.DB.Preload("Role").Offset(offset).Limit(limit).Find(&users)
+  database.DB.Model(&models.User{}).Count(&total)
+  //return c.JSON(users)
+  return c.JSON(fiber.Map{
+    "date": users,
+    "meta": fiber.Map{
+      "total": total,
+      "page":page,
+      "last_page": math.Ceil(float64(int(total)/limit)),
+    },
+  })
 
 }
 
