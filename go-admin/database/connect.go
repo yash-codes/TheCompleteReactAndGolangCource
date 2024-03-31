@@ -19,7 +19,7 @@ func Connect() {
   DB = db
 
   db.Migrator().DropTable(&models.User{})
-  db.AutoMigrate(&models.User{}, &models.Role{}) //this will create the table automatically
+  db.AutoMigrate(&models.User{}, &models.Role{}, &models.Permission{}) //this will create the table automatically
 
 }
 
