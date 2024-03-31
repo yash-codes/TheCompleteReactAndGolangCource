@@ -18,12 +18,30 @@ func AllRoles(c *fiber.Ctx) error {
 }
 
 func CreateRole(c *fiber.Ctx) error {
-  var role models.Role
+  //var role models.Role
 
-  if err := c.BodyParser(&role); err != nil {
+  var roleDto fiber.Map
+
+  if err := c.BodyParser(&roleDto); err != nil {
     return err
   }
 
+  list := roleDto["permissions"].([]interface{})
+
+  permissions := make([]models.Permission, len(list))
+
+  for i, permissionId := range list {
+    id, _ := strconv.Atoi(permissionId.(string))
+
+    permissions[i] = models.Permission{
+	Id: uint(id),
+    }
+  }
+
+  role := models.Role{
+	Name:        roleDto["name"].(string),
+	Permissions: permissions,
+  }
   //user.Password = password
   database.DB.Create(&role)
 
@@ -46,12 +64,35 @@ func UpdateRole(c *fiber.Ctx) error {
 
   id, _ := strconv.Atoi(c.Params("id"))
 
-  role := models.Role{
-    Id: uint(id),
+  var roleDto fiber.Map
+  //role := models.Role{
+    //Id: uint(id),
+  //}
+
+  if err := c.BodyParser(&roleDto); err != nil {
+    return err
   }
 
-  if err := c.BodyParser(&role); err != nil {
-    return err
+  list := roleDto["permissions"].([]interface{})
+
+  permissions := make([]models.Permission, len(list))
+
+  for i, permissionId := range list {
+    id, _ := strconv.Atoi(permissionId.(string))
+
+    permissions[i] = models.Permission{
+	Id: uint(id),
+    }
+  }
+
+  var result interface{}
+
+  database.DB.Table("role_permissions").Where("role_id", id).Delete(&result)
+
+  role := models.Role{
+	Id: uint(id),
+	Name:        roleDto["name"].(string),
+	Permissions: permissions,
   }
 
   database.DB.Model(&role).Updates(role)
