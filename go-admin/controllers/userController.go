@@ -4,6 +4,7 @@ import (
   "go-admin/models"
   "github.com/gofiber/fiber/v2"
   "go-admin/database"
+  "strconv"
   //"golang.org/x/crypto/bcrypt"
 )
 
@@ -28,9 +29,48 @@ func CreateUser(c *fiber.Ctx) error {
   user.SetPassword("1234")
 
   //user.Password = password
-
   database.DB.Create(&user)
 
   return c.JSON(user)
+}
 
+func GetUser(c *fiber.Ctx) error {
+  id, _ := strconv.Atoi(c.Params("id"))
+
+  user := models.User{
+    Id: uint(id),
+  }
+
+  database.DB.Find(&user)
+
+  return c.JSON(user)
+}
+
+func UpdateUser(c *fiber.Ctx) error {
+
+  id, _ := strconv.Atoi(c.Params("id"))
+
+  user := models.User{
+    Id: uint(id),
+  }
+
+  if err := c.BodyParser(&user); err != nil {
+    return err
+  }
+
+  database.DB.Model(&user).Updates(user)
+
+  return c.JSON(user)
+}
+
+func DeleteUser(c *fiber.Ctx) error {
+  id, _ := strconv.Atoi(c.Params("id"))
+
+  user := models.User{
+    Id: uint(id),
+  }
+
+  database.DB.Delete(&user)
+
+  return nil
 }
