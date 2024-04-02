@@ -1,66 +1,91 @@
 package controllers
 
 import (
-	"../database"
-	"../models"
-	"github.com/gofiber/fiber"
-	"strconv"
+  "go-admin/models"
+  "github.com/gofiber/fiber/v2"
+  "go-admin/database"
+  "math"
+  "strconv"
+  //"golang.org/x/crypto/bcrypt"
 )
 
 func AllProducts(c *fiber.Ctx) error {
-	page, _ := strconv.Atoi(c.Query("page", "1"))
 
-	return c.JSON(models.Paginate(database.DB, &models.Product{}, page))
+  page, _ := strconv.Atoi(c.Query("page","1"))
+  limit := 5
+  offset := (page - 1) * limit
+  var total int64
+
+  var products []models.Product
+
+  database.DB.Offset(offset).Limit(limit).Find(&users)
+  database.DB.Model(&models.User{}).Count(&total)
+  //return c.JSON(users)
+  return c.JSON(fiber.Map{
+    "date": products,
+    "meta": fiber.Map{
+      "total": total,
+      "page":page,
+      "last_page": math.Ceil(float64(int(total)/limit)),
+    },
+  })
+
 }
 
 func CreateProduct(c *fiber.Ctx) error {
-	var product models.Product
+  var product models.Product
 
-	if err := c.BodyParser(&product); err != nil {
-		return err
-	}
+  if err := c.BodyParser(&product); err != nil {
+    return err
+  }
 
-	database.DB.Create(&product)
+  // Instead of using below commented statement we can use
+  //password, _ := bcrypt.GenerateFromPassword([]byte("1234"), 14)
+  //product.SetPassword("1234")
 
-	return c.JSON(product)
+  //product.Password = password
+  database.DB.Create(&product)
+
+  return c.JSON(product)
 }
 
 func GetProduct(c *fiber.Ctx) error {
-	id, _ := strconv.Atoi(c.Params("id"))
+  id, _ := strconv.Atoi(c.Params("id"))
 
-	product := models.Product{
-		Id: uint(id),
-	}
+  product := models.Product{
+    Id: uint(id),
+  }
 
-	database.DB.Find(&product)
+  database.DB.Find(&product)
 
-	return c.JSON(product)
+  return c.JSON(product)
 }
 
 func UpdateProduct(c *fiber.Ctx) error {
-	id, _ := strconv.Atoi(c.Params("id"))
 
-	product := models.Product{
-		Id: uint(id),
-	}
+  id, _ := strconv.Atoi(c.Params("id"))
 
-	if err := c.BodyParser(&product); err != nil {
-		return err
-	}
+  product := models.Product{
+    Id: uint(id),
+  }
 
-	database.DB.Model(&product).Updates(product)
+  if err := c.BodyParser(&product); err != nil {
+    return err
+  }
 
-	return c.JSON(product)
+  database.DB.Model(&product).Updates(product)
+
+  return c.JSON(product)
 }
 
 func DeleteProduct(c *fiber.Ctx) error {
-	id, _ := strconv.Atoi(c.Params("id"))
+  id, _ := strconv.Atoi(c.Params("id"))
 
-	product := models.Product{
-		Id: uint(id),
-	}
+  product := models.Product{
+    Id: uint(id),
+  }
 
-	database.DB.Delete(&product)
+  database.DB.Delete(&product)
 
-	return nil
+  return nil
 }
