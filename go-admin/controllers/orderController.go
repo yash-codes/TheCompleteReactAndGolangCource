@@ -5,6 +5,8 @@ import (
   "github.com/gofiber/fiber/v2"
   "go-admin/database"
   "strconv"
+  "os"
+  "encoding/csv"
   //"golang.org/x/crypto/bcrypt"
 )
 
@@ -14,6 +16,69 @@ func AllOrders(c *fiber.Ctx) error {
 
  return c.JSON(models.Paginate(database.DB, &models.Order{}, page))
 }
+
+// export orders in CSV file
+func Export(c *fiber.Ctx) error {
+  filePath := "./csv/orders.csv"
+
+  if err := CreateFile(filePath); err != nil {
+    return err
+  }
+
+  return c.Download(filePath)
+}
+
+func CreateFile(filePath string) error {
+  file, err := os.Create(filePath)
+
+  if err != nil {
+    return err
+  }
+
+  defer file.Close()
+
+  writer := csv.NewWriter(file)
+  defer writer.Flush()
+
+  var orders []models.Order
+
+  database.DB.Preload("OrderItems").Find(&orders)
+
+  writer.Write([]string{
+    "ID","Name", "Email", "Product Title" , "Price", "Quantity",
+  })
+
+  for _, order := range orders {
+    data := []string{
+      strconv.Itoa(int(order.Id)),
+      order.FirstName + " " + order.LastName,
+      order.Email,
+      "",
+      "",
+      "",
+    }
+    if err := writer.Write(data); err != nil {
+      return err
+    }
+
+    for _, orderItem := range order.OrderItems {
+      data := []string{
+        "",
+        "",
+        "",
+        orderItem.ProductTitle,
+        strconv.Itoa(int(orderItem.Price)),
+        strconv.Itoa(int(orderItem.Quantity)),
+      }
+      if err := writer.Write(data); err != nil {
+        return err
+      }
+    }
+  }
+
+  return nil
+}
+
 /*
 func CreateProduct(c *fiber.Ctx) error {
   var product models.Product
